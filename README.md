@@ -1,36 +1,8 @@
-![PentadevIX Logo](./public/logo/Logo.webp)
+## Employee Onboarding Form ( M360ICT Task)
 
-PentadevIX is a robust platform designed for analyzing and managing the performance and scalability of your software projects. It provides insights into bottlenecks, resource utilization, and optimization opportunities across different environments. Users can monitor projects to ensure efficient and high-performing development workflows.
+This project is a multi-step **employee onboarding form** built with **Next JS, TypeScript, Tailwind CSS, React Form Hook, ShadCn and Tailwind CSS**.  
+The form includes step-by-step navigation, validation, and a final review step before submission.  
 
-## Features
-
-- **Performance Analysis:** Identify and optimize performance bottlenecks in your project.
-- **Resource Monitoring:** Track resource utilization and scalability metrics.
-- **Environment Insights:** Analyze and compare performance across different environments.
-
-## Branching Strategy
-
-- **Test Branch:** Used for internal testing.
-- **Beta Branch:** Used for client testing.
-- **Development Branch:** Uses the naming convention `pentadevix-client-vX.00.00X`, where X changes based on iteration.
-
-## Configuration
-
-- The backend URLs and important keys/tokens are stored in the `.env` file.
-- After modifying the `.env` file, export the values from `config.ts` for proper integration.
-- An `.env.example` file is provided to illustrate the `.env` file structure.
-
-## Technologies Used
-
-- **Framework:** Next.js
-- **Forms & Validation:** React Hook Form, Yup
-- **UI Components:** Material UI
-- **Networking:** Axios
-- **State Management:** Redux Toolkit
-- **Icons:** FontAwesome
-- **Authentication:** Firebase Auth
-- **Testing:** Cypress, Jest
-- **Code Quality Monitoring:** SonarQube
 
 ## Getting Started
 
@@ -54,93 +26,62 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-## Deployment
+## Explanation of Complex Logic
 
-The recommended deployment platform is **Netlify**. Refer to the [Netlify Deployment Guide](https://docs.netlify.com/) for more details.
+- 1. Step Navigation and Validation
+The form is divided into multiple steps, each corresponding to a specific section of the onboarding process.
+Navigation between steps is handled using the currentStep state.
+Validation is performed using react-hook-form and zod. Each step validates only the fields relevant to that step using the trigger function.
 
-### Deploying with Netlify CLI
+Challenge: Ensuring that validation errors are displayed only for the current step.
 
-1. Install Netlify CLI if you haven’t already:
-   
-   ```bash
-   npm install -g netlify-cli
-   ```
+Solution: A helper function getFieldsForStep dynamically determines which fields to validate based on the current step.
 
-2. Login to Netlify:
-   
-   ```bash
-   netlify login
-   ```
+- 2. Review Step and Confirmation Checkbox
+The final step (ReviewStep) displays a summary of all the entered data and includes a confirmation checkbox.
+The checkbox is validated only during form submission to prevent premature validation when navigating to the review step.
 
-   Follow the prompts to authenticate with your Netlify account.
+Challenge: Preventing the checkbox from being triggered or validated during navigation.
 
-3. Navigate to your project directory and deploy:
-   
-   ```bash
-   netlify deploy
-   ```
+Solution: Excluded the confirmation field from validation during navigation and validated it explicitly during submission.
 
-   This will initialize the deployment process and prompt you with options.
+- 3. Error Handling and User Feedback
+Validation errors are displayed using a toast notification system (use-toast hook).
+Errors are dynamically mapped to user-friendly messages for better UX. 
 
-4. For deploying updates to production, use:
-   
-   ```bash
-   netlify deploy --prod
-   ```
+Challenge: Providing clear feedback for validation errors across multiple steps.
 
-### Deploying to Development and Preview Environments
+Solution: Collected errors for the current step and displayed the first error message using a toast.
 
-- **Development Environment:**
-  
-  ```bash
-  netlify deploy --env development
-  ```
-  
-  This helps in testing changes before pushing them to production.
+- 4. Unsaved Changes Warning
+A beforeunload event listener warns users about unsaved changes when they attempt to leave the page. 
 
-- **Preview Deployment:**
-  
-  ```bash
-  netlify deploy --branch preview
-  ```
-  
-  This will deploy the branch as a preview, which can be shared and tested before going live.
+Challenge: Ensuring the warning is displayed only when there are unsaved changes.
 
-### Assigning a Custom Domain
+Solution: Used the isDirty state from react-hook-form to track changes and conditionally attach the event listener.
 
-- **Add your domain to Netlify:**
-  
-  ```bash
-  netlify domains:add yourdomain.com
-  ```
+## Assumptions Made
 
-- **Update your DNS settings** by following the instructions provided by Netlify.
+- **Default Values:** Default values for the form fields are provided in the useForm configuration. For example, dateOfBirth defaults to the current date, and jobType defaults to "Full-time".
+- **Validation Rules:** Validation rules are defined in the onboardingFormSchema using zod. It is assumed that these rules cover all necessary constraints for the form fields.
 
-- **Set the domain for production:**
-  
-  ```bash
-  netlify domains:set yourdomain.com
-  ```
+## Configuration
 
-- **Verify the domain:**
-  
-  ```bash
-  netlify domains:inspect yourdomain.com
-  ```
+- The backend URLs and important keys/tokens are stored in the `.env` file.
+- After modifying the `.env` file, export the values from `config.ts` for proper integration.
+- An `.env.example` file is provided to illustrate the `.env` file structure.
 
-### Logging Out
 
-To log out of the Netlify CLI:
+## Features
 
-```bash
-netlify logout
-```
+- Multi-step form with dynamic validation
+- Review step with a summary of entered data
+- Toast notifications for validation errors and submission status
+- Unsaved changes warning
+- Responsive design using Tailwind CSS
 
-## Learn More
+## Technologies Used
 
-- [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features and API.
-- [Firebase Documentation](https://firebase.google.com/docs) - Authentication setup.
-- [Redux Toolkit Documentation](https://redux-toolkit.js.org/) - State management.
-- [Netlify Documentation](https://docs.netlify.com/) - Deployment and configuration guidance.
-
-PentadevIX aims to provide seamless performance monitoring and optimization for modern software development workflows.
+- **Framework:** Next.js
+- **Forms & Validation:** React Hook Form
+- **UI Components:** ShadCn UI
