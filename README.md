@@ -1,4 +1,4 @@
-## Employee Onboarding Form ( M360ICT Task)
+# Employee Onboarding Form ( M360ICT Task)
 
 This project is a multi-step **employee onboarding form** built with **Next JS, TypeScript, Tailwind CSS, React Form Hook, zod, Shadcn and Tailwind CSS**.  
 The form includes step-by-step navigation, validation, and a final review step before submission.  
@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 
 ## Explanation of Complex Logic
 
-- Step Navigation and Validation:
+### Step Navigation and Validation:
  - The form is divided into multiple steps, each corresponding to a specific section of the onboarding process.
  - Navigation between steps is handled using the currentStep state.
  - Validation is performed using react-hook-form and zod. Each step validates only the fields relevant to that step using the trigger function.
@@ -37,7 +37,7 @@ Challenge: Ensuring that validation errors are displayed only for the current st
 
 Solution: A helper function getFieldsForStep dynamically determines which fields to validate based on the current step.
 
-- Review Step and Confirmation Checkbox
+### Review Step and Confirmation Checkbox
  - The final step (ReviewStep) displays a summary of all the entered data and includes a confirmation checkbox.
  - The checkbox is validated only during form submission to prevent premature validation when navigating to the review step.
 
@@ -45,7 +45,7 @@ Challenge: Preventing the checkbox from being triggered or validated during navi
 
 Solution: Excluded the confirmation field from validation during navigation and validated it explicitly during submission.
 
-- 3. Error Handling and User Feedback
+### Error Handling and User Feedback
  - Validation errors are displayed using a toast notification system (use-toast hook).
  - Errors are dynamically mapped to user-friendly messages for better UX. 
 
@@ -53,7 +53,7 @@ Challenge: Providing clear feedback for validation errors across multiple steps.
 
 Solution: Collected errors for the current step and displayed the first error message using a toast.
 
-- 4. Unsaved Changes Warning
+### Unsaved Changes Warning
  - A beforeunload event listener warns users about unsaved changes when they attempt to leave the page. 
 
 Challenge: Ensuring the warning is displayed only when there are unsaved changes.
