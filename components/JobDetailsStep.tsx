@@ -147,7 +147,6 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
           </SelectTrigger>
 
           <SelectContent>
-            {/* search box inside dropdown */}
             <div className="p-2">
               <input
                 type="search"
@@ -182,7 +181,6 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
         )}
       </div>
 
-      {/* Conditional Manager Approval for Remote Work */}
       {watch('skillsPreferences.remoteWorkPreference', 0) > 50 && (
         <div className='relative'>
           <Label htmlFor='managerApproval'>Manager Approval for Remote Work</Label>
