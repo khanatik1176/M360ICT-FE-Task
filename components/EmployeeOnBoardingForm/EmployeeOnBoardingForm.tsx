@@ -6,16 +6,17 @@ import {
   onboardingFormSchema,
   type OnboardingForm,
 } from '@/schema/OnboardingSchema';
-import PersonalInfoStep from './PersonalInfoStep';
-import JobDetailsStep from './JobDetailsStep';
-import SkillsPreferencesStep from './SkillsPreferencesStep';
-import EmergencyContactStep from './EmergencyContactStep';
-import ReviewStep from './ReviewStep';
-import { Button } from './ui/button';
-import { Progress } from './ui/progress';
+
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getFieldsForStep } from '@/constants/GlobalFunctions';
+import PersonalInfoStep from './steps/PersonalInfoStep';
+import JobDetailsStep from './steps/JobDetailsStep';
+import SkillsPreferencesStep from './steps/SkillsPreferencesStep';
+import EmergencyContactStep from './steps/EmergencyContactStep';
+import ReviewStep from './steps/ReviewStep';
+import { Progress } from '@radix-ui/react-progress';
+import { Button } from '../ui/button';
 
 const TOTAL_STEPS = 5;
 

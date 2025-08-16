@@ -1,4 +1,5 @@
-import EmployeeOnboardingForm from "@/components/EmployeeOnBoardingForm";
+import EmployeeOnboardingForm from "@/components/EmployeeOnBoardingForm/EmployeeOnBoardingForm";
+
 
 export default function OnboardingPage() {
   return (

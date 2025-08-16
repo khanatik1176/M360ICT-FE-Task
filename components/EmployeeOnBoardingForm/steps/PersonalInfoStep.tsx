@@ -6,12 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { PersonalInfoStepProps } from '@/types/Form.type';
 
-/*
-  PersonalInfoStep.tsx
-  - Uses your Input component for all fields
-  - Converts uploaded File to data URL and renders with Next/Image
-  - Keeps error messages absolutely positioned beneath each field
-*/
 
 export default function PersonalInfoStep({ form }: PersonalInfoStepProps) {
   const {
@@ -34,12 +28,10 @@ export default function PersonalInfoStep({ form }: PersonalInfoStepProps) {
       reader.readAsDataURL(profilePicture);
 
       return () => {
-        // cleanup
         if (reader) {
           reader.onload = null;
           reader.onerror = null;
         }
-        // no revoke necessary for data URL
       };
     }
 
