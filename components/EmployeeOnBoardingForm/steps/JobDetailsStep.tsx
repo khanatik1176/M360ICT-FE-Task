@@ -2,16 +2,27 @@
 import React, { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import { departments, jobTypes } from '@/schema/OnboardingSchema';
 import { JobDetailsStepProps } from '@/types/Form.type';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { mockManagers } from '@/constants/GlobalData';
-
-
+import { Controller } from 'react-hook-form';
 
 export default function JobDetailsStep({ form }: JobDetailsStepProps) {
-  const { register, watch, formState: { errors }, setValue } = form;
+  const {
+    register,
+    watch,
+    formState: { errors },
+    setValue,
+    control,
+  } = form;
   const jobType = watch('jobDetails.jobType');
   const department = watch('jobDetails.department');
 
@@ -20,8 +31,10 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
   const filteredManagers = useMemo(() => {
     if (!department) return [];
     return mockManagers
-      .filter(m => m.department === department)
-      .filter(m => m.name.toLowerCase().includes(managerSearch.trim().toLowerCase()));
+      .filter((m) => m.department === department)
+      .filter((m) =>
+        m.name.toLowerCase().includes(managerSearch.trim().toLowerCase())
+      );
   }, [department, managerSearch]);
 
   return (
@@ -31,7 +44,13 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
       <div className='relative'>
         <Label htmlFor='department'>Department</Label>
         <Select
-          onValueChange={(value) => setValue('jobDetails.department', value as typeof departments[number], { shouldValidate: true, shouldDirty: true })}
+          onValueChange={(value) =>
+            setValue(
+              'jobDetails.department',
+              value as (typeof departments)[number],
+              { shouldValidate: true, shouldDirty: true }
+            )
+          }
           value={watch('jobDetails.department')}
         >
           <SelectTrigger
@@ -55,7 +74,10 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
       </div>
 
       <div className='relative'>
-        <Label htmlFor='positionTitle'>Position Title</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='positionTitle'>Position Title</Label>
+          <span className='text-destructive'>*</span>
+        </div>
         <Input
           id='positionTitle'
           placeholder='Senior Developer'
@@ -70,14 +92,36 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
       </div>
 
       <div className='relative'>
-        <Label htmlFor='startDate'>Start Date</Label>
-        <Input
-          id='startDate'
-          type='date'
-          {...register('jobDetails.startDate', {
-            setValueAs: (value) => (value ? new Date(value) : null),
-          })}
-          className={`mt-2 ${errors.jobDetails?.startDate ? 'border-red-500' : ''}`}
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='startDate'>Start Date</Label>
+          <span className='text-destructive'>*</span>
+        </div>
+        <Controller
+          name='jobDetails.startDate'
+          control={control}
+          render={({ field }) => {
+            const value = field.value
+              ? field.value instanceof Date
+                ? field.value
+                : new Date(field.value)
+              : null;
+            return (
+              <Input
+                id='startDate'
+                type='date'
+                value={
+                  value && !isNaN(value.getTime())
+                    ? value.toISOString().split('T')[0]
+                    : ''
+                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  field.onChange(v ? new Date(v) : null);
+                }}
+                className={`mt-2 ${errors.jobDetails?.startDate ? 'border-red-500' : ''}`}
+              />
+            );
+          }}
         />
         {errors.jobDetails?.startDate && (
           <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
@@ -91,7 +135,13 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
         <div className='mt-2'>
           <RadioGroup
             value={watch('jobDetails.jobType')}
-            onValueChange={(value) => setValue('jobDetails.jobType', value as typeof jobTypes[number], { shouldValidate: true, shouldDirty: true })}
+            onValueChange={(value) =>
+              setValue(
+                'jobDetails.jobType',
+                value as (typeof jobTypes)[number],
+                { shouldValidate: true, shouldDirty: true }
+              )
+            }
             className='flex space-x-4'
           >
             {jobTypes.map((type) => (
@@ -113,7 +163,16 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
 
       <div className='relative'>
         <Label htmlFor='salaryExpectation'>
-          {jobType === 'Contract' ? 'Hourly Rate ($50-$150)' : 'Annual Salary ($30,000-$200,000)'}
+          {jobType === 'Contract' ? (
+            <>
+              Hourly Rate ($50-$150) <span className='text-destructive'>*</span>
+            </>
+          ) : (
+            <>
+              Annual Salary ($30,000-$200,000){' '}
+              <span className='text-destructive'>*</span>
+            </>
+          )}
         </Label>
         <Input
           id='salaryExpectation'
@@ -132,28 +191,38 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
       </div>
 
       <div className='relative'>
-        <Label htmlFor='manager'>Manager</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='manager'>Manager</Label>
+          <span className='text-destructive'>*</span>
+        </div>
 
         <Select
           onValueChange={(value) => {
-            setValue('jobDetails.manager', value as string, { shouldValidate: true, shouldDirty: true });
+            setValue('jobDetails.manager', value as string, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
           }}
           value={watch('jobDetails.manager')}
         >
           <SelectTrigger
             className={`mt-2 ${errors.jobDetails?.manager ? 'border-red-500' : ''}`}
           >
-            <SelectValue placeholder={department ? 'Select manager' : 'Select department first'} />
+            <SelectValue
+              placeholder={
+                department ? 'Select manager' : 'Select department first'
+              }
+            />
           </SelectTrigger>
 
           <SelectContent>
-            <div className="p-2">
+            <div className='p-2'>
               <input
-                type="search"
+                type='search'
                 value={managerSearch}
                 onChange={(e) => setManagerSearch(e.target.value)}
-                placeholder="Search manager..."
-                className="w-full rounded-md border px-2 py-1 text-sm"
+                placeholder='Search manager...'
+                className='w-full rounded-md border px-2 py-1 text-sm'
               />
             </div>
 
@@ -162,14 +231,18 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
                 filteredManagers.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     {m.name}
-                    <div className="text-xs text-muted-foreground">{m.id}</div>
+                    <div className='text-muted-foreground text-xs'>{m.id}</div>
                   </SelectItem>
                 ))
               ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">No managers found</div>
+                <div className='text-muted-foreground px-3 py-2 text-sm'>
+                  No managers found
+                </div>
               )
             ) : (
-              <div className="px-3 py-2 text-sm text-muted-foreground">Please select a department first</div>
+              <div className='text-muted-foreground px-3 py-2 text-sm'>
+                Please select a department first
+              </div>
             )}
           </SelectContent>
         </Select>
@@ -183,7 +256,9 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
 
       {watch('skillsPreferences.remoteWorkPreference', 0) > 50 && (
         <div className='relative'>
-          <Label htmlFor='managerApproval'>Manager Approval for Remote Work</Label>
+          <Label htmlFor='managerApproval'>
+            Manager Approval for Remote Work
+          </Label>
           <Input
             id='managerApproval'
             type='checkbox'

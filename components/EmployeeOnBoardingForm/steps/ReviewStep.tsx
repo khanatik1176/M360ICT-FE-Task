@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ReviewStepProps } from '@/types/Form.type';
 import { Controller } from 'react-hook-form';
+import { calculateAge } from '@/constants/GlobalFunctions';
 
 export default function ReviewStep({ formData, form }: ReviewStepProps) {
   const {
@@ -12,6 +13,9 @@ export default function ReviewStep({ formData, form }: ReviewStepProps) {
 
   const salary = formData.jobDetails?.salaryExpectation;
   const jobType = formData.jobDetails?.jobType;
+  const dateOfBirth = formData.personalInfo?.dateOfBirth;
+
+  const age = calculateAge(dateOfBirth);
 
   return (
     <div className='space-y-6'>
@@ -132,49 +136,63 @@ export default function ReviewStep({ formData, form }: ReviewStepProps) {
           </div>
         </section>
 
-        <section className='space-y-4'>
-          <h3 className='border-b pb-2 text-lg font-semibold'>
-            Emergency Contact
-          </h3>
-          <div className='grid grid-cols-2 gap-6'>
-            <div className='space-y-1'>
-              <Label className='text-sm text-gray-500'>Contact Name</Label>
-              <p className='font-medium'>
-                {formData.emergencyContact.contactName}
-              </p>
-            </div>
-            <div className='space-y-1'>
-              <Label className='text-sm text-gray-500'>Relationship</Label>
-              <p className='font-medium'>
-                {formData.emergencyContact.relationship}
-              </p>
-            </div>
-            <div className='space-y-1'>
-              <Label className='text-sm text-gray-500'>Phone Number</Label>
-              <p className='font-medium'>
-                {formData.emergencyContact.phoneNumber}
-              </p>
-            </div>
-            {formData.emergencyContact.guardianContact && (
-              <>
+        {age !== null && age < 21 && formData.emergencyContact && (
+          <section className='space-y-4'>
+            <h3 className='border-b pb-2 text-lg font-semibold'>
+              Emergency Contact
+            </h3>
+            <div className='grid grid-cols-2 gap-6'>
+              {formData.emergencyContact.contactName && (
                 <div className='space-y-1'>
-                  <Label className='text-sm text-gray-500'>Guardian Name</Label>
+                  <Label className='text-sm text-gray-500'>Contact Name</Label>
                   <p className='font-medium'>
-                    {formData.emergencyContact.guardianContact.name}
+                    {formData.emergencyContact.contactName}
                   </p>
                 </div>
+              )}
+              {formData.emergencyContact.relationship && (
                 <div className='space-y-1'>
-                  <Label className='text-sm text-gray-500'>
-                    Guardian Phone
-                  </Label>
+                  <Label className='text-sm text-gray-500'>Relationship</Label>
                   <p className='font-medium'>
-                    {formData.emergencyContact.guardianContact.phone}
+                    {formData.emergencyContact.relationship}
                   </p>
                 </div>
-              </>
-            )}
-          </div>
-        </section>
+              )}
+              {formData.emergencyContact.phoneNumber && (
+                <div className='space-y-1'>
+                  <Label className='text-sm text-gray-500'>Phone Number</Label>
+                  <p className='font-medium'>
+                    {formData.emergencyContact.phoneNumber}
+                  </p>
+                </div>
+              )}
+              {formData.emergencyContact.guardianContact && (
+                <>
+                  {formData.emergencyContact.guardianContact.name && (
+                    <div className='space-y-1'>
+                      <Label className='text-sm text-gray-500'>
+                        Guardian Name
+                      </Label>
+                      <p className='font-medium'>
+                        {formData.emergencyContact.guardianContact.name}
+                      </p>
+                    </div>
+                  )}
+                  {formData.emergencyContact.guardianContact.phone && (
+                    <div className='space-y-1'>
+                      <Label className='text-sm text-gray-500'>
+                        Guardian Phone
+                      </Label>
+                      <p className='font-medium'>
+                        {formData.emergencyContact.guardianContact.phone}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </section>
+        )}
       </div>
 
       <div className='relative mt-8 border-t pt-4'>

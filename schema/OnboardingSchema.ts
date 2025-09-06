@@ -1,7 +1,6 @@
 import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from '@/constants/GlobalData';
 import { z } from 'zod';
 
-
 export const departments = [
   'Engineering',
   'Marketing',
@@ -116,6 +115,25 @@ export const jobDetailsSchema = z
         });
       }
     }
+
+    if (data.jobType === 'Full-time' || data.jobType === 'Part-time') {
+      if (data.salaryExpectation < 30000 || data.salaryExpectation > 250000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['salaryExpectation'],
+          message:
+            'Salary must be between 30,000 and 250,000 for Full-time and Part-time jobs',
+        });
+      }
+    } else if (data.jobType === 'Contract') {
+      if (data.salaryExpectation < 50 || data.salaryExpectation > 150) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['salaryExpectation'],
+          message: 'Hourly rate must be between 50 and 150 for Contract jobs',
+        });
+      }
+    }
   });
 
 export const skillsPreferencesSchema = z.object({
@@ -182,15 +200,30 @@ export const emergencyContactSchema = z.object({
     .optional(),
 });
 
-export const onboardingFormSchema = z.object({
-  personalInfo: personalInfoSchema,
-  jobDetails: jobDetailsSchema,
-  skillsPreferences: skillsPreferencesSchema,
-  emergencyContact: emergencyContactSchema,
-  confirmation: z.boolean().refine((val) => val === true, {
-    message: 'You must confirm that the information is correct',
-  }),
-});
+export const onboardingFormSchema = z
+  .object({
+    personalInfo: personalInfoSchema,
+    jobDetails: jobDetailsSchema,
+    skillsPreferences: skillsPreferencesSchema,
+    emergencyContact: emergencyContactSchema.optional(),
+    confirmation: z.boolean().refine((val) => val === true, {
+      message: 'You must confirm that the information is correct',
+    }),
+  })
+  .superRefine((data, ctx) => {
+    const age = calculateAge(data.personalInfo.dateOfBirth);
+    if (age < 21) {
+      const result = emergencyContactSchema.safeParse(data.emergencyContact);
+      if (!result.success) {
+        for (const issue of result.error.issues) {
+          ctx.addIssue({
+            ...issue,
+            path: ['emergencyContact', ...(issue.path || [])],
+          });
+        }
+      }
+    }
+  });
 
 export type PersonalInfo = z.infer<typeof personalInfoSchema>;
 export type JobDetails = z.infer<typeof jobDetailsSchema>;

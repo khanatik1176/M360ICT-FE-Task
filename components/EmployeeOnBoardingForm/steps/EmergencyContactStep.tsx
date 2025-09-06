@@ -1,22 +1,34 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import { relationships } from '@/constants/GlobalData';
 import { EmergencyContactStepProps } from '@/types/Form.type';
 
-
-
-export default function EmergencyContactStep({ form }: EmergencyContactStepProps) {
-  const { register, watch, setValue, formState: { errors } } = form;
-  const dateOfBirth = watch('personalInfo.dateOfBirth');
-  const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
+export default function EmergencyContactStep({
+  form,
+}: EmergencyContactStepProps) {
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
 
   return (
     <div className='space-y-6'>
       <h2 className='text-2xl font-bold'>Emergency Contact</h2>
 
       <div className='relative'>
-        <Label htmlFor='contactName'>Contact Name</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='contactName'>Contact Name</Label>
+          <span className='text-destructive'>*</span>
+        </div>
         <Input
           id='contactName'
           placeholder='Jane Doe'
@@ -33,7 +45,9 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
       <div className='relative'>
         <Label htmlFor='relationship'>Relationship</Label>
         <Select
-          onValueChange={(value) => setValue('emergencyContact.relationship', value)}
+          onValueChange={(value) =>
+            setValue('emergencyContact.relationship', value as 'Parent' | 'Spouse' | 'Sibling' | 'Friend' | 'Other')
+          }
           value={watch('emergencyContact.relationship')}
         >
           <SelectTrigger
@@ -58,7 +72,10 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
       </div>
 
       <div className='relative'>
+        <div className='flex items-center gap-1'>
         <Label htmlFor='phoneNumber'>Phone Number</Label>
+        <span className='text-destructive'>*</span>
+        </div>
         <Input
           id='phoneNumber'
           placeholder='+1-123-456-7890'
@@ -71,46 +88,6 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
           </span>
         )}
       </div>
-
-      {age < 21 && (
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold'>Guardian Contact</h3>
-          
-          <div className='relative'>
-            <Label htmlFor='guardianName'>Guardian Name</Label>
-            <Input
-              id='guardianName'
-              placeholder="Guardian's full name"
-              {...register('emergencyContact.guardianContact.name')}
-              className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.name ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.emergencyContact?.guardianContact?.name && (
-              <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
-                {errors.emergencyContact.guardianContact.name.message}
-              </span>
-            )}
-          </div>
-
-          <div className='relative'>
-            <Label htmlFor='guardianPhone'>Guardian Phone Number</Label>
-            <Input
-              id='guardianPhone'
-              placeholder='+1-123-456-7890'
-              {...register('emergencyContact.guardianContact.phone')}
-              className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.phone ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.emergencyContact?.guardianContact?.phone && (
-              <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
-                {errors.emergencyContact.guardianContact.phone.message}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
