@@ -18,8 +18,6 @@ import ReviewStep from './steps/ReviewStep';
 import { Progress } from '@radix-ui/react-progress';
 import { Button } from '../ui/button';
 
-const TOTAL_STEPS = 5;
-
 export default function EmployeeOnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,78 +67,92 @@ export default function EmployeeOnboardingForm() {
   } = form;
 
   const formValues = watch();
+  const dateOfBirth = watch('personalInfo.dateOfBirth');
 
-  
+  // Calculate age based on dateOfBirth
+  const calculateAge = (dob: Date | string | null) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const age = calculateAge(dateOfBirth);
+
+  const TOTAL_STEPS = age !== null && age < 21 ? 5 : 4; // Adjust total steps based on age
 
   const onSubmit = async (data: OnboardingForm) => {
-  const isConfirmationValid = await trigger('confirmation');
-  if (!isConfirmationValid) {
-    toast({
-      title: 'Validation Error',
-      description: 'Please confirm that the information is correct.',
-      variant: 'destructive',
-    });
-    return;
-  }
+    const isConfirmationValid = await trigger('confirmation');
+    if (!isConfirmationValid) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please confirm that the information is correct.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-  setIsSubmitting(true);
-  console.log('Submitting form data:', data);
-  try {
+    setIsSubmitting(true);
+    console.log('Submitting form data:', data);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log('Form submitted:', data);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log('Form submitted:', data);
+      toast({
+        title: 'Success!',
+        description: 'Employee onboarding form submitted successfully.',
+        variant: 'default',
+      });
 
-    toast({
-      title: 'Success!',
-      description: 'Employee onboarding form submitted successfully.',
-      variant: 'default',
-    });
-
-    reset();
-    setCurrentStep(1);
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    toast({
-      title: 'Error',
-      description:
-        'There was an error submitting the form. Please try again.',
-      variant: 'destructive',
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      reset();
+      setCurrentStep(1);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: 'Error',
+        description: 'There was an error submitting the form. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleNext = async () => {
-  if (currentStep >= TOTAL_STEPS) return;
+    if (currentStep >= TOTAL_STEPS) return;
 
-  const currentFields = getFieldsForStep(currentStep);
-  const isStepValid = await trigger(currentFields);
+    const currentFields = getFieldsForStep(currentStep);
+    const isStepValid = await trigger(currentFields);
 
-  console.log('Validating step', currentStep, 'Fields:', currentFields, 'Is valid:', isStepValid);
+    console.log('Validating step', currentStep, 'Fields:', currentFields, 'Is valid:', isStepValid);
 
-  if (isStepValid) {
-    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-  } else {
-    const currentErrors = currentFields
-      .map((field) => errors[field]?.message)
-      .filter(Boolean);
+    if (isStepValid) {
+      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+    } else {
+      const currentErrors = currentFields
+        .map((field) => errors[field]?.message)
+        .filter(Boolean);
 
-    toast({
-      title: 'Validation Error',
-      description:
-        currentErrors[0] || 'Please fill in all required fields correctly.',
-      variant: 'destructive',
-    });
-  }
-};
+      toast({
+        title: 'Validation Error',
+        description:
+          currentErrors[0] || 'Please fill in all required fields correctly.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleBack = () => {
-  if (currentStep === TOTAL_STEPS) {
-    form.setValue('confirmation', false);
-  }
-  setCurrentStep((prev) => Math.max(prev - 1, 1));
-};
+    if (currentStep === TOTAL_STEPS) {
+      form.setValue('confirmation', false);
+    }
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -151,7 +163,11 @@ export default function EmployeeOnboardingForm() {
       case 3:
         return <SkillsPreferencesStep form={form} />;
       case 4:
-        return <EmergencyContactStep form={form} />;
+        return age !== null && age < 21 ? (
+          <EmergencyContactStep form={form} />
+        ) : (
+          <ReviewStep formData={formValues} form={form} />
+        );
       case 5:
         return <ReviewStep formData={formValues} form={form} />;
       default:

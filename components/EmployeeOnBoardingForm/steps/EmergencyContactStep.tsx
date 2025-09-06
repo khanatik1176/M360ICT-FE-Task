@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/select';
 import { relationships } from '@/constants/GlobalData';
 import { EmergencyContactStepProps } from '@/types/Form.type';
-import { useEffect, useState } from 'react';
 
 export default function EmergencyContactStep({
   form,
@@ -20,25 +19,6 @@ export default function EmergencyContactStep({
     setValue,
     formState: { errors },
   } = form;
-
-  const dateOfBirth = watch('personalInfo.dateOfBirth');
-  const [age, setAge] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (dateOfBirth) {
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      const calculatedAge = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        setAge(calculatedAge - 1);
-      } else {
-        setAge(calculatedAge);
-      }
-    } else {
-      setAge(null);
-    }
-  }, [dateOfBirth]);
 
   return (
     <div className='space-y-6'>
@@ -66,7 +46,7 @@ export default function EmergencyContactStep({
         <Label htmlFor='relationship'>Relationship</Label>
         <Select
           onValueChange={(value) =>
-            setValue('emergencyContact.relationship', value as any)
+            setValue('emergencyContact.relationship', value)
           }
           value={watch('emergencyContact.relationship')}
         >
@@ -93,8 +73,8 @@ export default function EmergencyContactStep({
 
       <div className='relative'>
         <div className='flex items-center gap-1'>
-          <Label htmlFor='phoneNumber'>Phone Number</Label>
-          <span className='text-destructive'>*</span>
+        <Label htmlFor='phoneNumber'>Phone Number</Label>
+        <span className='text-destructive'>*</span>
         </div>
         <Input
           id='phoneNumber'
@@ -108,50 +88,6 @@ export default function EmergencyContactStep({
           </span>
         )}
       </div>
-
-      {age !== null && age < 21 && (
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold'>Guardian Contact</h3>
-
-          <div className='relative'>
-            <Label htmlFor='guardianName'>Guardian Name</Label>
-            <Input
-              id='guardianName'
-              placeholder="Guardian's full name"
-              {...register('emergencyContact.guardianContact.name')}
-              className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.name
-                  ? 'border-red-500'
-                  : ''
-              }`}
-            />
-            {errors.emergencyContact?.guardianContact?.name && (
-              <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
-                {errors.emergencyContact.guardianContact.name.message}
-              </span>
-            )}
-          </div>
-
-          <div className='relative'>
-            <Label htmlFor='guardianPhone'>Guardian Phone Number</Label>
-            <Input
-              id='guardianPhone'
-              placeholder='+1-123-456-7890'
-              {...register('emergencyContact.guardianContact.phone')}
-              className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.phone
-                  ? 'border-red-500'
-                  : ''
-              }`}
-            />
-            {errors.emergencyContact?.guardianContact?.phone && (
-              <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
-                {errors.emergencyContact.guardianContact.phone.message}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
