@@ -9,7 +9,7 @@ import {
 
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getFieldsForStep } from '@/constants/GlobalFunctions';
+import { calculateAge, getFieldsForStep } from '@/constants/GlobalFunctions';
 import PersonalInfoStep from './steps/PersonalInfoStep';
 import JobDetailsStep from './steps/JobDetailsStep';
 import SkillsPreferencesStep from './steps/SkillsPreferencesStep';
@@ -48,11 +48,6 @@ export default function EmployeeOnboardingForm() {
         remoteWorkPreference: 0,
         extraNotes: '',
       },
-      emergencyContact: {
-        contactName: '',
-        relationship: 'Other',
-        phoneNumber: '',
-      },
       confirmation: false,
     },
     mode: 'onChange',
@@ -64,29 +59,22 @@ export default function EmployeeOnboardingForm() {
     trigger,
     watch,
     reset,
+    unregister,
+    getValues,
+    setValue,
   } = form;
 
   const formValues = watch();
   const dateOfBirth = watch('personalInfo.dateOfBirth');
 
-  // Calculate age based on dateOfBirth
-  const calculateAge = (dob: Date | string | null) => {
-    if (!dob) return null;
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   const age = calculateAge(dateOfBirth);
 
-  const TOTAL_STEPS = age !== null && age < 21 ? 5 : 4; // Adjust total steps based on age
+  const TOTAL_STEPS = age !== null && age < 21 ? 5 : 4;
 
   const onSubmit = async (data: OnboardingForm) => {
+    if (age !== null && age >= 21) {
+      delete (data as any).emergencyContact;
+    }
     const isConfirmationValid = await trigger('confirmation');
     if (!isConfirmationValid) {
       toast({
@@ -115,7 +103,8 @@ export default function EmployeeOnboardingForm() {
       console.error('Error submitting form:', error);
       toast({
         title: 'Error',
-        description: 'There was an error submitting the form. Please try again.',
+        description:
+          'There was an error submitting the form. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -123,21 +112,45 @@ export default function EmployeeOnboardingForm() {
     }
   };
 
+  // Ensure emergencyContact exists only when required
+  useEffect(() => {
+    if (age !== null && age < 21) {
+      if (!getValues('emergencyContact')) {
+        setValue(
+          'emergencyContact',
+          { contactName: '', relationship: 'Other', phoneNumber: '' },
+          { shouldDirty: false, shouldValidate: false }
+        );
+      }
+    } else {
+      // Remove it so Zod doesn't validate it
+      unregister('emergencyContact');
+      // Also clear value to avoid submitting stale data
+      setValue('emergencyContact' as any, undefined, {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+    }
+  }, [age, getValues, setValue, unregister]);
+
   const handleNext = async () => {
     if (currentStep >= TOTAL_STEPS) return;
 
-    const currentFields = getFieldsForStep(currentStep);
+    const currentFields = getFieldsForStep(currentStep, age);
+
+    // If this step has no fields (e.g., skipped emergency contact), just advance
+    if (currentFields.length === 0) {
+      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+      return;
+    }
+
     const isStepValid = await trigger(currentFields);
-
-    console.log('Validating step', currentStep, 'Fields:', currentFields, 'Is valid:', isStepValid);
-
     if (isStepValid) {
       setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
     } else {
       const currentErrors = currentFields
-        .map((field) => errors[field]?.message)
+        .map((field) => (errors as any)[field]?.message)
         .filter(Boolean);
-
       toast({
         title: 'Validation Error',
         description:
