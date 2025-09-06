@@ -46,7 +46,7 @@ export default function EmergencyContactStep({
         <Label htmlFor='relationship'>Relationship</Label>
         <Select
           onValueChange={(value) =>
-            setValue('emergencyContact.relationship', value)
+            setValue('emergencyContact.relationship', value as 'Parent' | 'Spouse' | 'Sibling' | 'Friend' | 'Other')
           }
           value={watch('emergencyContact.relationship')}
         >
