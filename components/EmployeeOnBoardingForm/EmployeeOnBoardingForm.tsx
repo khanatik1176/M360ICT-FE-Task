@@ -117,6 +117,8 @@ export default function EmployeeOnboardingForm() {
   const currentFields = getFieldsForStep(currentStep);
   const isStepValid = await trigger(currentFields);
 
+  console.log('Validating step', currentStep, 'Fields:', currentFields, 'Is valid:', isStepValid);
+
   if (isStepValid) {
     setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
   } else {
@@ -139,6 +141,7 @@ export default function EmployeeOnboardingForm() {
   }
   setCurrentStep((prev) => Math.max(prev - 1, 1));
 };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:

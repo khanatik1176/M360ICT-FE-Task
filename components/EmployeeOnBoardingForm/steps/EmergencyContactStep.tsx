@@ -1,22 +1,54 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import { relationships } from '@/constants/GlobalData';
 import { EmergencyContactStepProps } from '@/types/Form.type';
+import { useEffect, useState } from 'react';
 
+export default function EmergencyContactStep({
+  form,
+}: EmergencyContactStepProps) {
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
 
-
-export default function EmergencyContactStep({ form }: EmergencyContactStepProps) {
-  const { register, watch, setValue, formState: { errors } } = form;
   const dateOfBirth = watch('personalInfo.dateOfBirth');
-  const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
+  const [age, setAge] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (dateOfBirth) {
+      const birthDate = new Date(dateOfBirth);
+      const today = new Date();
+      const calculatedAge = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        setAge(calculatedAge - 1);
+      } else {
+        setAge(calculatedAge);
+      }
+    } else {
+      setAge(null);
+    }
+  }, [dateOfBirth]);
 
   return (
     <div className='space-y-6'>
       <h2 className='text-2xl font-bold'>Emergency Contact</h2>
 
       <div className='relative'>
-        <Label htmlFor='contactName'>Contact Name</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='contactName'>Contact Name</Label>
+          <span className='text-destructive'>*</span>
+        </div>
         <Input
           id='contactName'
           placeholder='Jane Doe'
@@ -33,7 +65,9 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
       <div className='relative'>
         <Label htmlFor='relationship'>Relationship</Label>
         <Select
-          onValueChange={(value) => setValue('emergencyContact.relationship', value)}
+          onValueChange={(value) =>
+            setValue('emergencyContact.relationship', value as any)
+          }
           value={watch('emergencyContact.relationship')}
         >
           <SelectTrigger
@@ -58,7 +92,10 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
       </div>
 
       <div className='relative'>
-        <Label htmlFor='phoneNumber'>Phone Number</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='phoneNumber'>Phone Number</Label>
+          <span className='text-destructive'>*</span>
+        </div>
         <Input
           id='phoneNumber'
           placeholder='+1-123-456-7890'
@@ -72,10 +109,10 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
         )}
       </div>
 
-      {age < 21 && (
+      {age !== null && age < 21 && (
         <div className='space-y-6'>
           <h3 className='text-lg font-semibold'>Guardian Contact</h3>
-          
+
           <div className='relative'>
             <Label htmlFor='guardianName'>Guardian Name</Label>
             <Input
@@ -83,7 +120,9 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
               placeholder="Guardian's full name"
               {...register('emergencyContact.guardianContact.name')}
               className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.name ? 'border-red-500' : ''
+                errors.emergencyContact?.guardianContact?.name
+                  ? 'border-red-500'
+                  : ''
               }`}
             />
             {errors.emergencyContact?.guardianContact?.name && (
@@ -100,7 +139,9 @@ export default function EmergencyContactStep({ form }: EmergencyContactStepProps
               placeholder='+1-123-456-7890'
               {...register('emergencyContact.guardianContact.phone')}
               className={`mt-2 ${
-                errors.emergencyContact?.guardianContact?.phone ? 'border-red-500' : ''
+                errors.emergencyContact?.guardianContact?.phone
+                  ? 'border-red-500'
+                  : ''
               }`}
             />
             {errors.emergencyContact?.guardianContact?.phone && (
