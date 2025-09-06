@@ -6,7 +6,6 @@ import {
   onboardingFormSchema,
   type OnboardingForm,
 } from '@/schema/OnboardingSchema';
-
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { calculateAge, getFieldsForStep } from '@/constants/GlobalFunctions';
@@ -41,10 +40,7 @@ export default function EmployeeOnboardingForm() {
       },
       skillsPreferences: {
         primarySkills: [],
-        workingHours: {
-          start: '09:00',
-          end: '17:00',
-        },
+        workingHours: { start: '09:00', end: '17:00' },
         remoteWorkPreference: 0,
         extraNotes: '',
       },
@@ -66,66 +62,20 @@ export default function EmployeeOnboardingForm() {
 
   const formValues = watch();
   const dateOfBirth = watch('personalInfo.dateOfBirth');
-
   const age = calculateAge(dateOfBirth);
-
   const TOTAL_STEPS = age !== null && age < 21 ? 5 : 4;
 
-  const onSubmit = async (data: OnboardingForm) => {
-    if (age !== null && age >= 21) {
-      delete (data as any).emergencyContact;
-    }
-    const isConfirmationValid = await trigger('confirmation');
-    if (!isConfirmationValid) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please confirm that the information is correct.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    console.log('Submitting form data:', data);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Form submitted:', data);
-
-      toast({
-        title: 'Success!',
-        description: 'Employee onboarding form submitted successfully.',
-        variant: 'default',
-      });
-
-      reset();
-      setCurrentStep(1);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast({
-        title: 'Error',
-        description:
-          'There was an error submitting the form. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Ensure emergencyContact exists only when required
   useEffect(() => {
     if (age !== null && age < 21) {
       if (!getValues('emergencyContact')) {
         setValue(
           'emergencyContact',
-          { contactName: '', relationship: 'Other', phoneNumber: '' },
+            { contactName: '', relationship: 'Other', phoneNumber: '' },
           { shouldDirty: false, shouldValidate: false }
         );
       }
     } else {
-      // Remove it so Zod doesn't validate it
       unregister('emergencyContact');
-      // Also clear value to avoid submitting stale data
       setValue('emergencyContact' as any, undefined, {
         shouldDirty: false,
         shouldValidate: false,
@@ -135,21 +85,19 @@ export default function EmployeeOnboardingForm() {
 
   const handleNext = async () => {
     if (currentStep >= TOTAL_STEPS) return;
-
     const currentFields = getFieldsForStep(currentStep, age);
 
-    // If this step has no fields (e.g., skipped emergency contact), just advance
     if (currentFields.length === 0) {
-      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+      setCurrentStep((p) => Math.min(p + 1, TOTAL_STEPS));
       return;
     }
 
     const isStepValid = await trigger(currentFields);
     if (isStepValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+      setCurrentStep((p) => Math.min(p + 1, TOTAL_STEPS));
     } else {
       const currentErrors = currentFields
-        .map((field) => (errors as any)[field]?.message)
+        .map((f) => (errors as any)[f]?.message)
         .filter(Boolean);
       toast({
         title: 'Validation Error',
@@ -164,7 +112,40 @@ export default function EmployeeOnboardingForm() {
     if (currentStep === TOTAL_STEPS) {
       form.setValue('confirmation', false);
     }
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((p) => Math.max(p - 1, 1));
+  };
+
+  const onSubmit = async (data: OnboardingForm) => {
+    if (age !== null && age >= 21) {
+      delete (data as any).emergencyContact;
+    }
+    if (!data.confirmation) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please confirm that the information is correct.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 1500));
+      toast({
+        title: 'Success!',
+        description: 'Employee onboarding form submitted successfully.',
+      });
+      reset();
+      setCurrentStep(1);
+    } catch (e) {
+      toast({
+        title: 'Error',
+        description: 'There was an error submitting the form. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -204,12 +185,9 @@ export default function EmployeeOnboardingForm() {
   };
 
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === 'Enter' && currentStep < TOTAL_STEPS) {
-      e.preventDefault();
-    }
+    if (e.key === 'Enter' && currentStep < TOTAL_STEPS) e.preventDefault();
   };
 
-  // Warn about unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -217,56 +195,60 @@ export default function EmployeeOnboardingForm() {
         e.returnValue = '';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    return () =>
+      window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
   return (
-    <div className='mx-auto max-w-2xl p-6'>
-      <div className='rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900'>
-        <div className='mb-6'>
-          <div className='mb-3 flex items-center justify-between'>
-            <h1 className='text-lg font-semibold'>Employee Onboarding</h1>
-            <div className='text-sm text-gray-500'>
+    <div className="mx-auto max-w-2xl p-6">
+      <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
+        <div className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Employee Onboarding</h1>
+            <div className="text-sm text-gray-500">
               Step {currentStep} of {TOTAL_STEPS}
             </div>
           </div>
           <Progress
             value={(currentStep / TOTAL_STEPS) * 100}
-            className='mb-2 h-2 rounded-full'
+            className="mb-2 h-2 rounded-full"
           />
         </div>
 
         <form
           onSubmit={handleSubmit(onSubmit, onFormError)}
           onKeyDown={handleFormKeyDown}
-          className='space-y-8'
+          className="space-y-8"
         >
           {renderStep()}
 
-          <div className='mt-6 flex items-center justify-between border-t pt-4'>
+            <div className="mt-6 flex items-center justify-between border-t pt-4">
             {currentStep > 1 && (
               <Button
-                type='button'
-                variant='outline'
+                type="button"
+                variant="outline"
                 onClick={handleBack}
-                className='w-28'
+                className="w-28"
               >
                 Back
               </Button>
             )}
 
-            <div className='ml-auto flex items-center space-x-3'>
+            <div className="ml-auto flex items-center space-x-3">
               {currentStep < TOTAL_STEPS ? (
-                <Button type='button' onClick={handleNext} className='w-28'>
+                <Button type="button" onClick={handleNext} className="w-28">
                   Next
                 </Button>
               ) : (
-                <Button type='submit' disabled={isSubmitting} className='w-28'>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-28"
+                >
                   {isSubmitting ? (
-                    <div className='flex items-center'>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                    <div className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span>Saving...</span>
                     </div>
                   ) : (

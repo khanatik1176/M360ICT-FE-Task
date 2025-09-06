@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { PersonalInfoStepProps } from '@/types/Form.type';
+import { Controller } from 'react-hook-form';
 
 export default function PersonalInfoStep({ form }: PersonalInfoStepProps) {
   const {
     register,
-    setValue,
     watch,
+    control,
     formState: { errors },
   } = form as UseFormReturn<any>;
 
@@ -134,13 +135,40 @@ export default function PersonalInfoStep({ form }: PersonalInfoStepProps) {
           <Label htmlFor='dateOfBirth'>Date of Birth</Label>
           <span className='text-destructive'>*</span>
         </div>
-        <Input
-          id='dateOfBirth'
-          type='date'
-          {...register('personalInfo.dateOfBirth', {
-            setValueAs: (v) => (v ? new Date(v) : null),
-          })}
-          className={`mt-2 ${errors.personalInfo && typeof errors.personalInfo === 'object' && 'dateOfBirth' in errors.personalInfo && errors.personalInfo.dateOfBirth ? 'border-red-500' : ''}`}
+        <Controller
+          name='personalInfo.dateOfBirth'
+          control={control}
+          render={({ field }) => {
+            const value = field.value
+              ? field.value instanceof Date
+                ? field.value
+                : new Date(field.value)
+              : null;
+
+            return (
+              <Input
+                id='dateOfBirth'
+                type='date'
+                value={
+                  value && !isNaN(value.getTime())
+                    ? value.toISOString().split('T')[0]
+                    : ''
+                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  field.onChange(v ? new Date(v) : null);
+                }}
+                className={`mt-2 ${
+                  errors.personalInfo &&
+                  typeof errors.personalInfo === 'object' &&
+                  'dateOfBirth' in errors.personalInfo &&
+                  errors.personalInfo.dateOfBirth
+                    ? 'border-red-500'
+                    : ''
+                }`}
+              />
+            );
+          }}
         />
         {errors.personalInfo &&
           typeof errors.personalInfo === 'object' &&
@@ -158,17 +186,67 @@ export default function PersonalInfoStep({ form }: PersonalInfoStepProps) {
       <div className='relative'>
         <Label htmlFor='profilePicture'>Profile Picture</Label>
 
-        <Input
-          id='profilePicture'
-          type='file'
-          accept='.jpg,.jpeg,.png'
-          className={`mt-2 ${errors.personalInfo && typeof errors.personalInfo === 'object' && 'profilePicture' in errors.personalInfo && errors.personalInfo.profilePicture ? 'border-red-500' : ''}`}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0] ?? null;
-            setValue('personalInfo.profilePicture', file, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
+        <Controller
+          name='personalInfo.profilePicture'
+          control={control}
+          render={({ field }) => {
+            const rawVal = field.value;
+            const displayName =
+              rawVal instanceof File
+                ? rawVal.name
+                : typeof rawVal === 'string' && rawVal
+                  ? rawVal.split(/[/\\]/).pop()
+                  : '';
+
+            return (
+              <div className='relative mt-2'>
+                {/* Actual file input (invisible but clickable) */}
+                <Input
+                  id='profilePicture'
+                  type='file'
+                  accept='.jpg,.jpeg,.png'
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    field.onChange(file);
+                  }}
+                  className='absolute inset-0 z-10 cursor-pointer opacity-0'
+                />
+
+                {/* Styled visible field showing filename */}
+                <div
+                  className={`border-input bg-background flex h-10 w-full items-center justify-between overflow-hidden rounded-md border px-3 py-2 text-sm ${
+                    errors.personalInfo &&
+                    typeof errors.personalInfo === 'object' &&
+                    'profilePicture' in errors.personalInfo &&
+                    errors.personalInfo.profilePicture
+                      ? 'border-red-500'
+                      : ''
+                  }`}
+                >
+                  <span
+                    className={`truncate ${displayName ? 'text-foreground' : 'text-muted-foreground'}`}
+                  >
+                    {displayName || 'Choose an image...'}
+                  </span>
+                  <span className='ml-3 shrink-0 text-xs text-primary'>
+                    Browse
+                  </span>
+                </div>
+
+                {errors.personalInfo &&
+                  typeof errors.personalInfo === 'object' &&
+                  'profilePicture' in errors.personalInfo &&
+                  errors.personalInfo.profilePicture && (
+                    <span className='absolute -bottom-5 left-0 text-xs text-red-500'>
+                      {typeof (errors.personalInfo as any).profilePicture
+                        ?.message === 'string'
+                        ? ((errors.personalInfo as any).profilePicture
+                            .message as string)
+                        : null}
+                    </span>
+                  )}
+              </div>
+            );
           }}
         />
 

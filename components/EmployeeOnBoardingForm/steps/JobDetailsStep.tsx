@@ -13,6 +13,7 @@ import { departments, jobTypes } from '@/schema/OnboardingSchema';
 import { JobDetailsStepProps } from '@/types/Form.type';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { mockManagers } from '@/constants/GlobalData';
+import { Controller } from 'react-hook-form';
 
 export default function JobDetailsStep({ form }: JobDetailsStepProps) {
   const {
@@ -20,6 +21,7 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
     watch,
     formState: { errors },
     setValue,
+    control,
   } = form;
   const jobType = watch('jobDetails.jobType');
   const department = watch('jobDetails.department');
@@ -94,13 +96,32 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
           <Label htmlFor='startDate'>Start Date</Label>
           <span className='text-destructive'>*</span>
         </div>
-        <Input
-          id='startDate'
-          type='date'
-          {...register('jobDetails.startDate', {
-            setValueAs: (value) => (value ? new Date(value) : null),
-          })}
-          className={`mt-2 ${errors.jobDetails?.startDate ? 'border-red-500' : ''}`}
+        <Controller
+          name='jobDetails.startDate'
+          control={control}
+          render={({ field }) => {
+            const value = field.value
+              ? field.value instanceof Date
+                ? field.value
+                : new Date(field.value)
+              : null;
+            return (
+              <Input
+                id='startDate'
+                type='date'
+                value={
+                  value && !isNaN(value.getTime())
+                    ? value.toISOString().split('T')[0]
+                    : ''
+                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  field.onChange(v ? new Date(v) : null);
+                }}
+                className={`mt-2 ${errors.jobDetails?.startDate ? 'border-red-500' : ''}`}
+              />
+            );
+          }}
         />
         {errors.jobDetails?.startDate && (
           <span className='absolute bottom-[-20px] left-0 text-xs text-red-500'>
@@ -171,8 +192,8 @@ export default function JobDetailsStep({ form }: JobDetailsStepProps) {
 
       <div className='relative'>
         <div className='flex items-center gap-1'>
-        <Label htmlFor='manager'>Manager</Label>
-        <span className='text-destructive'>*</span>
+          <Label htmlFor='manager'>Manager</Label>
+          <span className='text-destructive'>*</span>
         </div>
 
         <Select
